@@ -1,0 +1,6 @@
+{
+  "name": "HORACO Managed Switch",
+  "domains": ["sensor", "binary_sensor", "button"],
+  "iot_class": "Local Polling",
+  "homeassistant": "2024.1.0"
+}

@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to your Managed Switch",
+        "description": "Works with HORACO HC-SWTGW218AS, HC-SWTGW215AS, keepLink KP9000 and compatible OEM switches. Default credentials are admin / admin.",
+        "data": {
+          "host": "Switch IP Address",
+          "port": "HTTP Port",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the switch. Check the IP address and credentials.",
+      "unknown": "Unexpected error — check the Home Assistant logs."
+    },
+    "abort": {
+      "already_configured": "This switch is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "HORACO Switch Options",
+        "data": {
+          "scan_interval": "Polling interval (seconds, 10–300)"
+        }
+      }
+    }
+  }
+}
