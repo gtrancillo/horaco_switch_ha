@@ -2,113 +2,101 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/gtrancillo/horaco_switch_ha)](https://github.com/gtrancillo/horaco_switch_ha/releases)
+[![Validate](https://github.com/gtrancillo/horaco_switch_ha/actions/workflows/validate.yml/badge.svg)](https://github.com/gtrancillo/horaco_switch_ha/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![HA Version](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue)](https://www.home-assistant.io/)
 
-Native Home Assistant integration for **HORACO HC-SWTGW218AS**, **HC-SWTGW215AS**, **keepLink KP9000** and compatible OEM managed switches.
-
-**No intermediate service, no Docker, no switch-dashboard app required.** This integration talks directly to the switch's built-in HTTP CGI interface — the same endpoints used by [byte4geek/switch-dashboard](https://github.com/byte4geek/switch-dashboard), implemented natively in HA.
+Control and monitor your **HORACO**, **keepLink** and compatible OEM managed switches directly from Home Assistant — **no extra app, no Docker, no intermediate service**. The integration talks straight to the switch's built-in HTTP interface, the same CGI endpoints used by [byte4geek/switch-dashboard](https://github.com/byte4geek/switch-dashboard), implemented natively in HA with full async support.
 
 ---
 
-## Supported Devices
+## Supported devices
 
-| Model | Ports | SFP+ | Confirmed |
-|-------|-------|------|-----------|
-| HORACO HC-SWTGW218AS | 8 x GbE | 2 x 10G | ✅ |
-| HORACO HC-SWTGW215AS | 5 x GbE | — | ✅ |
-| keepLink KP9000-9XH-X | 8 x GbE | 1 x 10G | ✅ |
-| OEM Realtek RTL8373-based switches | varies | — | ✅ likely |
+| Model | Ports | SFP+ | Status |
+|-------|-------|------|--------|
+| HORACO HC-SWTGW218AS | 8 × GbE | 2 × 10G | ✅ Confirmed |
+| HORACO HC-SWTGW215AS | 5 × GbE | — | ✅ Confirmed |
+| keepLink KP9000-9XH-X | 8 × GbE | 1 × 10G | ✅ Confirmed |
+| OEM Realtek RTL8373-based switches | varies | — | ✅ Likely |
 
-> **Tip:** If your switch has a web interface accessible via a browser on port 80 with user/password login, it will very likely work.
+> If your switch has a browser-accessible web UI on port 80 with user/password login, it will very likely work. Open an issue to get it added to the table.
 
 ---
 
 ## Features
 
-- 🔌 **Per-port child devices** — each port groups its own entities (link, speed, TX/RX bytes, packets, flow control)
-- 📊 **Traffic counters** — cumulative TX/RX bytes and packets, compatible with HA statistics and Energy dashboard
-- 🔄 **Reboot button** — remote switch reboot with a single button press
-- ⚡ **Direct CGI polling** — no cloud, no proxy, pure LAN
-- 🔧 **Configurable polling interval** — 10 to 300 seconds
+- 🔌 **Per-port child devices** — each port is its own HA device grouping link state, speed, duplex, TX/RX bytes, TX/RX packets and flow control
+- 📊 **Traffic counters** — cumulative TX/RX sensors compatible with HA statistics and the Energy dashboard
+- 🔄 **Reboot button** — one-tap remote reboot from any HA dashboard or automation
+- ⚡ **Direct LAN polling** — fully local, no cloud, no proxy
+- 🔧 **Configurable interval** — 10 to 300 seconds (default 30 s)
 
 ---
 
 ## Installation
 
-### Via HACS (Recommended)
+### Via HACS (recommended)
 
-1. Open HACS → Integrations → ⋮ → **Custom repositories**
-2. Add `https://github.com/gtrancillo/horaco_switch_ha` → type **Integration**
-3. Search **HORACO** and install
-4. Restart Home Assistant
-5. Go to **Settings → Devices & Services → Add Integration → HORACO Managed Switch**
+1. HACS → Integrations → ⋮ → **Custom repositories**
+2. URL: `https://github.com/gtrancillo/horaco_switch_ha` · Type: **Integration**
+3. Install **HORACO Managed Switch** and restart HA
+4. **Settings → Devices & Services → Add Integration → HORACO Managed Switch**
 
 ### Manual
 
-1. Download the [latest release](https://github.com/gtrancillo/horaco_switch_ha/releases/latest)
-2. Copy the `horaco_switch/` folder into `<your HA config>/custom_components/`
-3. Restart Home Assistant
-4. Go to **Settings → Devices & Services → Add Integration → HORACO Managed Switch**
+1. Download the latest `horaco_switch.zip` from [Releases](https://github.com/gtrancillo/horaco_switch_ha/releases/latest)
+2. Unzip and copy the `horaco_switch/` folder into `<config>/custom_components/`
+3. Restart HA and add the integration via the UI
 
 ---
 
-## Configuration
+## Setup
 
-During setup you will be asked for:
+| Field | Default | Notes |
+|-------|---------|-------|
+| Switch IP Address | — | e.g. `192.168.1.100` |
+| HTTP Port | `80` | Change only if you remapped the web UI |
+| Username | `admin` | Default HORACO credential |
+| Password | `admin` | Default HORACO credential |
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| Switch IP Address | — | LAN IP of the switch (e.g. `192.168.1.100`) |
-| HTTP Port | `80` | Switch web interface port |
-| Username | `admin` | Switch admin username |
-| Password | `admin` | Switch admin password |
-
-After setup, click **Configure** on the integration card to adjust:
-
-| Option | Default | Range |
-|--------|---------|-------|
-| Polling interval | `30` s | 10 – 300 s |
+After setup click **Configure** on the integration card to adjust the polling interval (10–300 s).
 
 ---
 
 ## Entities
 
-### Switch Device
+### Switch device
 
 | Entity | Type | Description |
 |--------|------|-------------|
-| `Uptime` | Sensor | Switch uptime (e.g. `3d 14h 22m`) |
-| `Firmware` | Sensor | Firmware version string |
-| `MAC Address` | Sensor | Switch hardware MAC |
-| `Ports Up` | Sensor | Number of currently active ports |
-| `Ports Total` | Sensor | Total physical port count |
-| `Reboot` | Button | Sends reboot command to the switch |
+| Uptime | Sensor | e.g. `3d 14h 22m` |
+| Firmware | Sensor | Firmware version string |
+| MAC Address | Sensor | Switch hardware MAC |
+| Ports Up | Sensor | Count of active ports |
+| Ports Total | Sensor | Total physical port count |
+| **Reboot** | **Button** | Sends `POST /reboot.cgi` to the switch |
 
-### Port N Device  *(one per physical port)*
+### Port N device *(one per physical port)*
 
 | Entity | Type | Description |
 |--------|------|-------------|
-| `Link` | Binary Sensor | `ON` = link up · `OFF` = down / disabled |
-| `Speed` | Sensor | Negotiated speed (`100M`, `1000M`, `10G`, …) |
-| `Duplex` | Sensor | `Full` or `Half` |
-| `TX` | Sensor | Total transmitted bytes (cumulative) |
-| `RX` | Sensor | Total received bytes (cumulative) |
-| `TX Packets` | Sensor | Total transmitted packets (cumulative) |
-| `RX Packets` | Sensor | Total received packets (cumulative) |
-| `Flow Control` | Sensor | `Enabled` or `Disabled` |
-
-The `Link` binary sensor also carries all port attributes as extra state:
-`status`, `link`, `speed`, `duplex`, `flow_control`, `tx_bytes`, `rx_bytes`, `tx_packets`, `rx_packets`
+| Link | Binary Sensor | `ON` = up · `OFF` = down/disabled. Carries all port attrs. |
+| Speed | Sensor | `100M` · `1000M` · `10G` · `Disabled` |
+| Duplex | Sensor | `Full` or `Half` |
+| TX | Sensor | Total bytes transmitted (cumulative) |
+| RX | Sensor | Total bytes received (cumulative) |
+| TX Packets | Sensor | Total packets transmitted |
+| RX Packets | Sensor | Total packets received |
+| Flow Control | Sensor | `Enabled` or `Disabled` |
 
 ---
 
-## Example Automations
+## Example automations
 
 ### Alert when a port goes down
 
 ```yaml
-alias: "Switch Port 3 Disconnected"
+alias: "Switch port 3 disconnected"
 trigger:
   - platform: state
     entity_id: binary_sensor.port_3_link
@@ -118,7 +106,7 @@ action:
   - service: notify.mobile_app
     data:
       title: "⚠️ Network alert"
-      message: "Switch port 3 link went down"
+      message: "Switch port 3 went down"
 ```
 
 ### Weekly maintenance reboot
@@ -137,52 +125,45 @@ action:
       entity_id: button.switch_192_168_1_100_reboot
 ```
 
-### Dashboard — all port states at a glance
-
-```yaml
-type: custom:mushroom-entity-card   # or type: entities
-title: Switch Ports
-entities:
-  - entity: binary_sensor.port_1_link
-    secondary_info: attribute
-    attribute: speed
-  - entity: binary_sensor.port_2_link
-    secondary_info: attribute
-    attribute: speed
-  # repeat for all ports…
-```
-
 ---
 
-## How It Works
-
-The integration replicates the HTTP scraping logic from [byte4geek/switch-dashboard](https://github.com/byte4geek/switch-dashboard) natively inside HA:
+## How it works
 
 1. **Auth** — `MD5(username + password)` → `POST /login.cgi`, cookie jar
-2. **Poll every N seconds:**
+2. **Poll** (every N seconds):
    - `GET /info.cgi` → model, firmware, MAC, uptime, port link/speed
-   - `GET /port.cgi` → admin-enabled state per port
-   - `GET /port.cgi?page=stats` → TX/RX byte and packet counters
+   - `GET /port.cgi` → admin state per port
+   - `GET /port.cgi?page=stats` → TX/RX counters
 3. **Reboot** — `POST /reboot.cgi {"cmd":"reboot"}`
 
-A small delay (0.4 s) is enforced between sequential requests to avoid session thrashing the switch's uIP micro-controller.
-
----
-
-## Troubleshooting
-
-| Problem | Solution |
-|---------|----------|
-| "Cannot connect" during setup | Verify HA can reach the switch IP on port 80; check credentials |
-| Entities show `unavailable` | Check HA logs for `[horaco_switch]` errors |
-| Counters not updating | Some OEM firmware versions zero out stats on re-login; increase polling interval |
-| Reboot button does nothing | Ensure the switch firmware supports `/reboot.cgi` |
+A 0.4 s delay between sequential requests prevents session thrashing on the switch's uIP micro-controller.
 
 ---
 
 ## Contributing
 
-Pull requests welcome! If you have a different switch model that works (or doesn't), please open an issue with your model name and HA logs.
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for the full workflow.
+
+Short version: fork → branch → PR → both CI checks green → merge.
+
+**Found a compatible device?** Open a [New device issue](https://github.com/gtrancillo/horaco_switch_ha/issues/new?template=new_device.yml) and we'll add it to the table.
+
+---
+
+## Protecting the `main` branch (repo setup guide)
+
+After pushing to GitHub, go to **Settings → Branches → Add rule** and configure:
+
+| Setting | Value |
+|---------|-------|
+| Branch name pattern | `main` |
+| Require a pull request before merging | ✅ |
+| Require approvals | 1 (or 0 for solo projects) |
+| Require status checks to pass | ✅ |
+| Status checks required | `HACS validation`, `hassfest` |
+| Do not allow bypassing the above settings | ✅ (optional but recommended) |
+
+This ensures no commit lands on `main` without both CI validations passing.
 
 ---
 
@@ -190,9 +171,6 @@ Pull requests welcome! If you have a different switch model that works (or doesn
 
 MIT — see [LICENSE](LICENSE)
 
----
-
 ## Credits
 
-- CGI scraping approach and endpoint knowledge: [byte4geek/switch-dashboard](https://github.com/byte4geek/switch-dashboard)
-- Home Assistant custom component structure inspired by the HA developer docs
+CGI endpoint knowledge and scraping approach from [byte4geek/switch-dashboard](https://github.com/byte4geek/switch-dashboard).
